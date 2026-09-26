@@ -1124,7 +1124,7 @@ function renderQuestions() {
                 button.classList.add("selected");
 
                 // 用原始 question.id 儲存，確保亂序後 Q1～Q3 仍正確計分。
-                answers[question.id] = optionIndex;
+                answers[questions.indexOf(question)] = Number(optionIndex);
             });
 
             answersDiv.appendChild(button);
