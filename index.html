@@ -29,7 +29,7 @@ html {
 body {
     min-height: 100vh;
 
-    background-image: url("green-hills-with-blue-sky_53876-144337.avif");
+    background-image: url("background.jpg");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -152,6 +152,21 @@ body {
 
 .screen.active {
     display: block;
+    animation: screenFadeIn .45s ease forwards;
+}
+
+.screen.fade-out {
+    animation: screenFadeOut .3s ease forwards;
+}
+
+@keyframes screenFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes screenFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
 /* =========================
@@ -304,6 +319,50 @@ body {
     color: #900;
     text-align: center;
     border-radius: 5px;
+}
+
+/* =========================
+   分析中
+========================= */
+
+.analysis-loading-page {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.analysis-loading-title {
+    font-size: clamp(32px, 6vw, 54px);
+    font-weight: 900;
+    margin: 0 0 25px;
+    text-shadow: 2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,.12);
+}
+
+.loading-dots {
+    font-size: 22px;
+    font-weight: bold;
+    background: rgba(255,255,255,.88);
+    border: 2px solid #222;
+    border-radius: 8px;
+    padding: 12px 22px;
+    box-shadow: 3px 3px 0 rgba(0,0,0,.15);
+}
+
+.loading-spinner {
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 18px;
+    border: 4px solid rgba(0,0,0,.18);
+    border-top-color: #111;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* =========================
@@ -519,7 +578,7 @@ body {
         </div>
 
         <div class="total-small">
-            已有 <span id="homeTotal">0</span> 人完成分析
+            <span id="homeTotal">0</span>
         </div>
 
     </section>
@@ -598,6 +657,21 @@ body {
 
 
     <!-- =========================
+         分析中
+    ========================= -->
+
+    <section id="analysisScreen" class="screen">
+
+        <div class="analysis-loading-page">
+            <div class="loading-spinner"></div>
+            <h1 class="analysis-loading-title">分析中……</h1>
+            <div class="loading-dots">請稍候</div>
+        </div>
+
+    </section>
+
+
+    <!-- =========================
          結果
     ========================= -->
 
@@ -607,10 +681,6 @@ body {
 
             <div class="result-title" id="resultTitle">
                 你是一臺卡車
-            </div>
-
-            <div class="result-subtitle" id="resultTraits">
-                內向｜穩健｜細節
             </div>
 
             <div class="result-image-wrap">
@@ -625,12 +695,6 @@ body {
             </div>
 
             <div class="analysis-box">
-
-                <div
-                    class="traits"
-                    id="resultTraits2"
-                >
-                </div>
 
                 <div
                     class="analysis"
@@ -667,11 +731,6 @@ body {
                     載入中……
                 </div>
 
-                <div
-                    class="stats-total"
-                    id="statsTotal"
-                >
-                </div>
 
             </div>
 
@@ -970,20 +1029,30 @@ let currentResult = null;
 
 function showScreen(id) {
 
-    document
-        .querySelectorAll(".screen")
-        .forEach(screen => {
-            screen.classList.remove("active");
-        });
+    const current = document.querySelector(".screen.active");
+    const next = document.getElementById(id);
 
-    document
-        .getElementById(id)
-        .classList.add("active");
+    if (!next || current === next) {
+        if (next) {
+            next.classList.remove("fade-out");
+            next.classList.add("active");
+        }
+        return;
+    }
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    if (current) {
+        current.classList.add("fade-out");
+
+        setTimeout(function() {
+            current.classList.remove("active", "fade-out");
+            next.classList.remove("fade-out");
+            next.classList.add("active");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }, 300);
+    } else {
+        next.classList.add("active");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 }
 
 
@@ -1007,144 +1076,65 @@ function startQuiz() {
    產生題目
 ========================================================= */
 
+function shuffle(array) {
+    const copied = [...array];
+    for (let i = copied.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copied[i], copied[j]] = [copied[j], copied[i]];
+    }
+    return copied;
+}
+
 function renderQuestions() {
 
-    const container =
-        document.getElementById("questions");
-
+    const container = document.getElementById("questions");
     container.innerHTML = "";
 
-    questions.forEach(
-        (question, questionIndex) => {
+    const shuffledQuestions = shuffle(questions);
 
-            const questionDiv =
-                document.createElement("div");
+    shuffledQuestions.forEach((question, displayIndex) => {
 
-            questionDiv.className = "question";
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "question";
 
-            const number =
-                document.createElement("div");
+        const number = document.createElement("div");
+        number.className = "question-number";
+        number.textContent = `第 ${displayIndex + 1} 題`;
 
-            number.className =
-                "question-number";
+        const title = document.createElement("div");
+        title.className = "question-title";
+        title.textContent = question.text;
 
-            number.textContent =
-                `第 ${questionIndex + 1} 題`;
+        const answersDiv = document.createElement("div");
+        answersDiv.className = "answers";
 
-            const title =
-                document.createElement("div");
+        question.options.forEach((option, optionIndex) => {
 
-            title.className =
-                "question-title";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "answer-btn";
+            button.textContent = option;
 
-            title.textContent =
-                question.text;
+            button.addEventListener("click", function() {
 
-            const answersDiv =
-                document.createElement("div");
+                answersDiv.querySelectorAll(".answer-btn").forEach(btn => {
+                    btn.classList.remove("selected");
+                });
 
-            answersDiv.className =
-                "answers";
+                button.classList.add("selected");
 
+                // 用原始 question.id 儲存，確保亂序後 Q1～Q3 仍正確計分。
+                answers[question.id] = optionIndex;
+            });
 
-            question.options.forEach(
-                (option, optionIndex) => {
+            answersDiv.appendChild(button);
+        });
 
-                    const button =
-                        document.createElement("button");
-
-                    button.type = "button";
-
-                    button.className =
-                        "answer-btn";
-
-                    button.textContent =
-                        option;
-
-
-                    /*
-                     * 非常重要：
-                     *
-                     * 每一顆按鈕只控制自己。
-                     *
-                     * 即使第一顆和第二顆
-                     * 都算「左邊」，
-                     * 它們仍然不會一起亮。
-                     */
-
-                    button.addEventListener(
-                        "click",
-                        function() {
-
-                            /*
-                             * 只清除同一題
-                             * 的所有 selected
-                             */
-
-                            answersDiv
-                                .querySelectorAll(
-                                    ".answer-btn"
-                                )
-                                .forEach(btn => {
-                                    btn.classList
-                                        .remove(
-                                            "selected"
-                                        );
-                                });
-
-
-                            /*
-                             * 只讓自己亮
-                             */
-
-                            button.classList
-                                .add("selected");
-
-
-                            /*
-                             * 記錄真正的
-                             * 第幾個選項
-                             *
-                             * 0 = 非常同意
-                             * 1 = 同意
-                             * 2 = 不同意
-                             * 3 = 非常不同意
-                             */
-
-                            answers[
-                                questionIndex
-                            ] = optionIndex;
-
-                        }
-                    );
-
-
-                    answersDiv.appendChild(
-                        button
-                    );
-
-                }
-            );
-
-
-            questionDiv.appendChild(
-                number
-            );
-
-            questionDiv.appendChild(
-                title
-            );
-
-            questionDiv.appendChild(
-                answersDiv
-            );
-
-            container.appendChild(
-                questionDiv
-            );
-
-        }
-    );
+        questionDiv.appendChild(number);
+        questionDiv.appendChild(title);
+        questionDiv.appendChild(answersDiv);
+        container.appendChild(questionDiv);
+    });
 }
 
 
@@ -1248,7 +1238,11 @@ function finishQuiz() {
     }
 
 
-    showResult();
+    showScreen("analysisScreen");
+
+    setTimeout(function() {
+        showResult();
+    }, 2500);
 
 }
 
@@ -1265,16 +1259,6 @@ function showResult() {
         `你是一臺${currentResult.name}`;
 
 
-    document.getElementById(
-        "resultTraits"
-    ).textContent =
-        currentResult.traits;
-
-
-    document.getElementById(
-        "resultTraits2"
-    ).textContent =
-        currentResult.traits;
 
 
     document.getElementById(
@@ -1664,9 +1648,7 @@ async function loadStats() {
 
 
                 renderStats(
-                    resultResponse.data,
-                    totalResponse.data
-                        .total_completed
+                    resultResponse.data
                 );
 
 
@@ -1711,8 +1693,7 @@ async function loadStats() {
 
 
     renderStats(
-        rows,
-        data.total
+        rows
     );
 
 }
@@ -1740,8 +1721,7 @@ function updateHomeTotal(
 ========================================================= */
 
 function renderStats(
-    rows,
-    total
+    rows
 ) {
 
     const list =
@@ -1808,12 +1788,6 @@ function renderStats(
         }
     );
 
-
-    document.getElementById(
-        "statsTotal"
-    ).textContent =
-        `總完成次數：${Number(total || 0).toLocaleString()} 次`;
-
 }
 
 
@@ -1831,6 +1805,3 @@ document.addEventListener(
 );
 
 </script>
-
-</body>
-</html>
