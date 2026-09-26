@@ -1154,9 +1154,17 @@ function finishQuiz() {
      * 確認全部 12 題都有回答
      */
 
+    /*
+     * 直接檢查畫面上的每一題是否真的有選中的按鈕。
+     * 題目即使隨機排列，也不會誤判。
+     */
+    const questionCards =
+        document.querySelectorAll(".question");
+
     const missing =
-        answers.some(
-            answer => answer === null
+        questionCards.length !== questions.length ||
+        Array.from(questionCards).some(
+            card => !card.querySelector(".answer-btn.selected")
         );
 
 
@@ -1177,6 +1185,19 @@ function finishQuiz() {
     error.style.display =
         "none";
 
+
+    /*
+     * 保險確認 Q1～Q3 的答案確實已記錄。
+     */
+    if (
+        answers[0] == null ||
+        answers[1] == null ||
+        answers[2] == null
+    ) {
+        error.style.display = "block";
+        error.textContent = "答案沒有成功記錄，請重新點選一次。";
+        return;
+    }
 
     /*
      * Q1
