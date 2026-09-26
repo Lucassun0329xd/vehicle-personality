@@ -1,75 +1,1832 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>載具性格分析</title>
+<title>載具性格分析</title>
 
-    <style>
-        body {
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
     margin: 0;
-    font-family: Arial, "Noto Sans TC", sans-serif;
+    padding: 0;
+    min-height: 100%;
+    font-family:
+        "Microsoft JhengHei",
+        "Noto Sans TC",
+        Arial,
+        sans-serif;
+}
 
-    background-image: url("green-hills-with-blue-sky_53876-144337.avif");
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
+body {
+    min-height: 100vh;
+    background:
+        linear-gradient(
+            180deg,
+            #dcecff 0%,
+            #edf5ff 48%,
+            #d7e8f8 100%
+        );
+    color: #111;
+}
 
-    color: #222;
+/* =========================
+   整體
+========================= */
+
+.page {
+    min-height: 100vh;
+    position: relative;
+    padding: 60px 20px 30px;
+}
+
+.container {
+    width: min(900px, 100%);
+    margin: 0 auto;
+}
+
+/* =========================
+   左上角按鈕
+========================= */
+
+.top-left {
+    position: fixed;
+    top: 14px;
+    left: 16px;
+    z-index: 100;
+    display: flex;
+    gap: 7px;
+}
+
+.small-link {
+    display: inline-block;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.88);
+    border: 1px solid #777;
+    border-radius: 5px;
+    color: #111;
+    text-decoration: none;
+    font-size: 13px;
+    box-shadow: 1px 1px 0 rgba(0,0,0,.18);
+}
+
+.small-link:hover {
+    background: white;
+}
+
+/* =========================
+   首頁
+========================= */
+
+.home {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
 }
 
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 80px 20px;
-        }
+.logo-title {
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 900;
+    letter-spacing: 5px;
+    margin: 0 0 38px;
+    text-shadow:
+        2px 2px 0 #fff,
+        4px 4px 0 rgba(0,0,0,.12);
+}
 
-        h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
+.home-button {
+    min-width: 210px;
+    padding: 13px 30px;
+    margin: 7px;
+    border: 2px solid #111;
+    border-radius: 7px;
+    background: #fff;
+    color: #111;
+    font-size: 19px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 #111;
+    transition: .1s;
+}
 
-        p {
-            font-size: 20px;
-            line-height: 1.7;
-        }
+.home-button:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 #111;
+}
 
-        .start-button {
-            display: inline-block;
-            margin-top: 40px;
-            padding: 18px 50px;
-            background: #222;
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-size: 22px;
-            cursor: pointer;
-        }
+.home-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #111;
+}
 
-        .start-button:hover {
-            opacity: 0.8;
-        }
-    </style>
+/* 完成數字 */
+
+.total-small {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(0,0,0,.55);
+}
+
+/* =========================
+   頁面切換
+========================= */
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* =========================
+   關於
+========================= */
+
+.about-box {
+    max-width: 600px;
+    margin: 100px auto;
+    background: rgba(255,255,255,.9);
+    border: 2px solid #222;
+    border-radius: 10px;
+    padding: 35px;
+    text-align: center;
+    box-shadow: 5px 5px 0 rgba(0,0,0,.15);
+}
+
+.about-box h2 {
+    margin-top: 0;
+    font-size: 32px;
+}
+
+.about-box p {
+    font-size: 18px;
+    line-height: 1.8;
+}
+
+.back-button {
+    margin-top: 20px;
+    padding: 9px 20px;
+    border: 1px solid #222;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+}
+
+/* =========================
+   測驗
+========================= */
+
+.quiz-header {
+    max-width: 800px;
+    margin: 0 auto 25px;
+    text-align: center;
+}
+
+.quiz-header h1 {
+    font-size: 36px;
+    margin: 0 0 10px;
+}
+
+.quiz-header p {
+    margin: 0;
+    color: #555;
+}
+
+.question {
+    max-width: 800px;
+    margin: 0 auto 22px;
+    padding: 25px;
+    background: rgba(255,255,255,.94);
+    border: 1px solid #888;
+    border-radius: 9px;
+    box-shadow: 3px 3px 0 rgba(0,0,0,.12);
+}
+
+.question-number {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 7px;
+}
+
+.question-title {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* =========================
+   四個答案
+   注意：
+   四個按鈕完全獨立
+========================= */
+
+.answers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 9px;
+}
+
+.answer-btn {
+    min-height: 60px;
+    padding: 10px 5px;
+    border: 2px solid #555;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    font-size: 15px;
+    cursor: pointer;
+    transition: .12s;
+}
+
+/* 滑過 */
+
+.answer-btn:hover {
+    background: #f1f1f1;
+}
+
+/* 只有「自己」被選到才亮 */
+
+.answer-btn.selected {
+    background: #111;
+    color: white;
+    border-color: #111;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 rgba(0,0,0,.25);
+}
+
+/* 防止 disabled 時被其他樣式影響 */
+
+.answer-btn:focus {
+    outline: none;
+}
+
+.quiz-submit {
+    display: block;
+    margin: 30px auto 70px;
+    padding: 13px 40px;
+    border: 2px solid #111;
+    border-radius: 7px;
+    background: #111;
+    color: white;
+    font-size: 19px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.quiz-submit:hover {
+    background: #333;
+}
+
+.error-message {
+    display: none;
+    max-width: 800px;
+    margin: 0 auto 15px;
+    padding: 10px;
+    background: #ffe1e1;
+    border: 1px solid #c00;
+    color: #900;
+    text-align: center;
+    border-radius: 5px;
+}
+
+/* =========================
+   結果
+========================= */
+
+.result-page {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    padding-bottom: 60px;
+}
+
+.result-title {
+    font-size: clamp(34px, 6vw, 58px);
+    font-weight: 900;
+    margin: 20px 0 10px;
+}
+
+.result-subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.result-image-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+.result-image {
+    width: min(500px, 90vw);
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: black;
+    border: 2px solid #111;
+    display: block;
+}
+
+.analysis-box {
+    max-width: 600px;
+    margin: 25px auto;
+    padding: 20px;
+    background: rgba(255,255,255,.92);
+    border: 1px solid #888;
+    border-radius: 8px;
+}
+
+.traits {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.analysis {
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.download-button {
+    padding: 12px 28px;
+    margin: 5px;
+    border: 2px solid #111;
+    border-radius: 6px;
+    background: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.restart-button {
+    padding: 12px 28px;
+    margin: 5px;
+    border: 2px solid #111;
+    border-radius: 6px;
+    background: #111;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* =========================
+   統計
+========================= */
+
+.stats-box {
+    max-width: 500px;
+    margin: 35px auto;
+    padding: 20px;
+    background: rgba(255,255,255,.9);
+    border: 1px solid #999;
+    border-radius: 8px;
+}
+
+.stats-box h3 {
+    margin-top: 0;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.stats-row:last-child {
+    border-bottom: none;
+}
+
+.stats-total {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* =========================
+   手機
+========================= */
+
+@media (max-width: 650px) {
+
+    .page {
+        padding: 55px 12px 30px;
+    }
+
+    .top-left {
+        top: 9px;
+        left: 9px;
+    }
+
+    .small-link {
+        font-size: 11px;
+        padding: 4px 7px;
+    }
+
+    .logo-title {
+        font-size: 42px;
+        letter-spacing: 2px;
+    }
+
+    .home-button {
+        min-width: 190px;
+        font-size: 17px;
+    }
+
+    .question {
+        padding: 18px 13px;
+    }
+
+    .question-title {
+        font-size: 18px;
+    }
+
+    .answers {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .answer-btn {
+        min-height: 55px;
+        font-size: 14px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-    <div class="container">
+<!-- =========================
+     左上角
+========================= -->
 
-        <h1>🚗 載具性格分析</h1>
+<div class="top-left">
+    <a
+        class="small-link"
+        href="https://www.youtube.com/@Lucassun0329"
+        target="_blank"
+    >
+        誰做的？
+    </a>
 
-        <p>
-            你覺得自己是一台什麼載具？<br>
-            來測測看，你的靈魂到底適合什麼交通工具。
-        </p>
+    <a
+        class="small-link"
+        href="https://www.rmhc.org.tw/"
+        target="_blank"
+    >
+        贊助我們
+    </a>
+</div>
 
-        <a href="#" class="start-button">
-            開始分析
-        </a>
 
-    </div>
+<div class="page">
+
+    <!-- =========================
+         首頁
+    ========================= -->
+
+    <section id="homeScreen" class="screen active">
+
+        <div class="home">
+
+            <h1 class="logo-title">
+                載具性格分析
+            </h1>
+
+            <button
+                class="home-button"
+                onclick="startQuiz()"
+            >
+                開始分析
+            </button>
+
+        </div>
+
+        <div class="total-small">
+            已有 <span id="homeTotal">0</span> 人完成分析
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         關於
+    ========================= -->
+
+    <section id="aboutScreen" class="screen">
+
+        <div class="about-box">
+
+            <h2>誰做的？</h2>
+
+            <p>
+                作者：孫翌豪
+            </p>
+
+            <p>
+                想知道更多可以到我的 YouTube。
+            </p>
+
+            <a
+                class="small-link"
+                href="https://www.youtube.com/@Lucassun0329"
+                target="_blank"
+            >
+                YouTube
+            </a>
+
+            <br>
+
+            <button
+                class="back-button"
+                onclick="showScreen('homeScreen')"
+            >
+                回首頁
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         測驗
+    ========================= -->
+
+    <section id="quizScreen" class="screen">
+
+        <div class="quiz-header">
+
+            <h1>載具性格分析</h1>
+
+            <p>
+                選擇最符合你的答案
+            </p>
+
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            還有題目沒有回答喔！
+        </div>
+
+        <div id="questions"></div>
+
+        <button
+            class="quiz-submit"
+            onclick="finishQuiz()"
+        >
+            看我的載具
+        </button>
+
+    </section>
+
+
+    <!-- =========================
+         結果
+    ========================= -->
+
+    <section id="resultScreen" class="screen">
+
+        <div class="result-page">
+
+            <div class="result-title" id="resultTitle">
+                你是一臺卡車
+            </div>
+
+            <div class="result-subtitle" id="resultTraits">
+                內向｜穩健｜細節
+            </div>
+
+            <div class="result-image-wrap">
+
+                <img
+                    id="resultImage"
+                    class="result-image"
+                    src=""
+                    alt="載具結果"
+                >
+
+            </div>
+
+            <div class="analysis-box">
+
+                <div
+                    class="traits"
+                    id="resultTraits2"
+                >
+                </div>
+
+                <div
+                    class="analysis"
+                    id="resultAnalysis"
+                >
+                </div>
+
+            </div>
+
+            <button
+                class="download-button"
+                onclick="downloadResult()"
+            >
+                下載圖片
+            </button>
+
+            <button
+                class="restart-button"
+                onclick="startQuiz()"
+            >
+                再測一次
+            </button>
+
+
+            <!-- 統計 -->
+
+            <div class="stats-box">
+
+                <h3>
+                    大家的結果
+                </h3>
+
+                <div id="statsList">
+                    載入中……
+                </div>
+
+                <div
+                    class="stats-total"
+                    id="statsTotal"
+                >
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+
+<!-- =========================
+     Supabase
+========================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<script>
+
+/* =========================================================
+   Supabase 設定
+=========================================================
+
+   把你 Supabase 的網址貼到 SUPABASE_URL
+   把 anon public key 貼到 SUPABASE_ANON_KEY
+
+   千萬不要放 service_role key。
+========================================================= */
+
+const SUPABASE_URL = "";
+
+const SUPABASE_ANON_KEY = "";
+
+let supabaseClient = null;
+
+if (
+    SUPABASE_URL &&
+    SUPABASE_ANON_KEY &&
+    window.supabase
+) {
+    supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+}
+
+
+/* =========================================================
+   題目
+========================================================= */
+
+const questions = [
+
+    {
+        text:
+        "當你經歷了高壓的一週後，週末最能讓你「重新充飽電」的方式？",
+        dimension: "social",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "面對原本排好的行程突然遇到意外變化時，你的第一反應是大叫？",
+        dimension: "adventure",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "在規劃或啟動一個新計畫時，你通常會最先關注別人?",
+        dimension: "bigPicture",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你覺得賴清德是史上最好的中華民國總統？",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你願意在凌晨四點跑去男/女朋友家煮牛肉麵？",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你認為比起可口可樂你更喜歡百事?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你去麥當勞吃薯條比起沾番茄醬，你更喜歡沾冰炫風?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你覺得MBTI是一個具有公信力的性格測驗?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你在傷心時，會去和AI談心?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "比起Kpop你更喜歡聽Jpop?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "其實你很想去做水電?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    },
+
+    {
+        text:
+        "你在國中時，很喜歡上第八節課?",
+        dimension: "fun",
+        options: [
+            "非常同意",
+            "同意",
+            "不同意",
+            "非常不同意"
+        ]
+    }
+
+];
+
+
+/* =========================================================
+   八種結果
+========================================================= */
+
+const results = {
+
+    "內向-穩健-細節": {
+        name: "卡車",
+        traits: "內向｜穩健｜細節",
+        analysis:
+            "享受獨處沉思且踏實專注於目標",
+        image:
+            "results/truck.jpg"
+    },
+
+    "外向-穩健-宏觀大局": {
+        name: "巴士",
+        traits: "外向｜穩健｜宏觀大局",
+        analysis:
+            "熱愛群體互動且擅長按規劃推進",
+        image:
+            "results/bus.jpg"
+    },
+
+    "外向-冒險-宏觀大局": {
+        name: "吉普車",
+        traits: "外向｜冒險｜宏觀大局",
+        analysis:
+            "熱衷社交探索且勇於開創新局面的",
+        image:
+            "results/jeep.jpg"
+    },
+
+    "外向-冒險-細節": {
+        name: "計程車",
+        traits: "外向｜冒險｜細節",
+        analysis:
+            "善於交際應變且敏銳察覺周遭變化",
+        image:
+            "results/taxi.jpg"
+    },
+
+    "內向-冒險-細節": {
+        name: "挖土機",
+        traits: "內向｜冒險｜細節",
+        analysis:
+            "偏好獨立思考且敢於挑戰精細任務",
+        image:
+            "results/excavator.jpg"
+    },
+
+    "內向-穩健-宏觀大局": {
+        name: "推土機",
+        traits: "內向｜穩健｜宏觀大局",
+        analysis:
+            "沉穩獨立且具備長期遠見與貫徹力",
+        image:
+            "results/bulldozer.jpg"
+    },
+
+    "外向-穩健-細節": {
+        name: "水車",
+        traits: "外向｜穩健｜細節",
+        analysis:
+            "低調專注且追求精準穩定的執行力",
+        image:
+            "results/water-truck.jpg"
+    },
+
+    "內向-冒險-宏觀大局": {
+        name: "飛機",
+        traits: "內向｜冒險｜宏觀大局",
+        analysis:
+            "具團隊領導力且能掌控全局勇於突破",
+        image:
+            "results/plane.jpg"
+    }
+
+};
+
+
+/* =========================================================
+   使用者答案
+========================================================= */
+
+let answers = [];
+
+let currentResult = null;
+
+
+/* =========================================================
+   顯示頁面
+========================================================= */
+
+function showScreen(id) {
+
+    document
+        .querySelectorAll(".screen")
+        .forEach(screen => {
+            screen.classList.remove("active");
+        });
+
+    document
+        .getElementById(id)
+        .classList.add("active");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   開始測驗
+========================================================= */
+
+function startQuiz() {
+
+    answers = new Array(
+        questions.length
+    ).fill(null);
+
+    renderQuestions();
+
+    showScreen("quizScreen");
+}
+
+
+/* =========================================================
+   產生題目
+========================================================= */
+
+function renderQuestions() {
+
+    const container =
+        document.getElementById("questions");
+
+    container.innerHTML = "";
+
+    questions.forEach(
+        (question, questionIndex) => {
+
+            const questionDiv =
+                document.createElement("div");
+
+            questionDiv.className = "question";
+
+            const number =
+                document.createElement("div");
+
+            number.className =
+                "question-number";
+
+            number.textContent =
+                `第 ${questionIndex + 1} 題`;
+
+            const title =
+                document.createElement("div");
+
+            title.className =
+                "question-title";
+
+            title.textContent =
+                question.text;
+
+            const answersDiv =
+                document.createElement("div");
+
+            answersDiv.className =
+                "answers";
+
+
+            question.options.forEach(
+                (option, optionIndex) => {
+
+                    const button =
+                        document.createElement("button");
+
+                    button.type = "button";
+
+                    button.className =
+                        "answer-btn";
+
+                    button.textContent =
+                        option;
+
+
+                    /*
+                     * 非常重要：
+                     *
+                     * 每一顆按鈕只控制自己。
+                     *
+                     * 即使第一顆和第二顆
+                     * 都算「左邊」，
+                     * 它們仍然不會一起亮。
+                     */
+
+                    button.addEventListener(
+                        "click",
+                        function() {
+
+                            /*
+                             * 只清除同一題
+                             * 的所有 selected
+                             */
+
+                            answersDiv
+                                .querySelectorAll(
+                                    ".answer-btn"
+                                )
+                                .forEach(btn => {
+                                    btn.classList
+                                        .remove(
+                                            "selected"
+                                        );
+                                });
+
+
+                            /*
+                             * 只讓自己亮
+                             */
+
+                            button.classList
+                                .add("selected");
+
+
+                            /*
+                             * 記錄真正的
+                             * 第幾個選項
+                             *
+                             * 0 = 非常同意
+                             * 1 = 同意
+                             * 2 = 不同意
+                             * 3 = 非常不同意
+                             */
+
+                            answers[
+                                questionIndex
+                            ] = optionIndex;
+
+                        }
+                    );
+
+
+                    answersDiv.appendChild(
+                        button
+                    );
+
+                }
+            );
+
+
+            questionDiv.appendChild(
+                number
+            );
+
+            questionDiv.appendChild(
+                title
+            );
+
+            questionDiv.appendChild(
+                answersDiv
+            );
+
+            container.appendChild(
+                questionDiv
+            );
+
+        }
+    );
+}
+
+
+/* =========================================================
+   計算結果
+========================================================= */
+
+function finishQuiz() {
+
+    const error =
+        document.getElementById(
+            "errorMessage"
+        );
+
+
+    /*
+     * 確認全部 12 題都有回答
+     */
+
+    const missing =
+        answers.some(
+            answer => answer === null
+        );
+
+
+    if (missing) {
+
+        error.style.display =
+            "block";
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+        return;
+    }
+
+
+    error.style.display =
+        "none";
+
+
+    /*
+     * Q1
+     *
+     * 0 / 1 = 左
+     * 2 / 3 = 右
+     *
+     * 左 = 外向
+     * 右 = 內向
+     */
+
+    const social =
+        answers[0] <= 1
+            ? "外向"
+            : "內向";
+
+
+    /*
+     * Q2
+     *
+     * 左 = 冒險
+     * 右 = 穩健
+     */
+
+    const adventure =
+        answers[1] <= 1
+            ? "冒險"
+            : "穩健";
+
+
+    /*
+     * Q3
+     *
+     * 左 = 宏觀大局
+     * 右 = 細節
+     */
+
+    const bigPicture =
+        answers[2] <= 1
+            ? "宏觀大局"
+            : "細節";
+
+
+    const key =
+        `${social}-${adventure}-${bigPicture}`;
+
+
+    currentResult =
+        results[key];
+
+
+    if (!currentResult) {
+
+        alert(
+            "找不到這組結果，請重新測驗。"
+        );
+
+        return;
+    }
+
+
+    showResult();
+
+}
+
+
+/* =========================================================
+   顯示結果
+========================================================= */
+
+function showResult() {
+
+    document.getElementById(
+        "resultTitle"
+    ).textContent =
+        `你是一臺${currentResult.name}`;
+
+
+    document.getElementById(
+        "resultTraits"
+    ).textContent =
+        currentResult.traits;
+
+
+    document.getElementById(
+        "resultTraits2"
+    ).textContent =
+        currentResult.traits;
+
+
+    document.getElementById(
+        "resultAnalysis"
+    ).textContent =
+        currentResult.analysis;
+
+
+    document.getElementById(
+        "resultImage"
+    ).src =
+        currentResult.image;
+
+
+    showScreen(
+        "resultScreen"
+    );
+
+
+    /*
+     * 完成一次後才記錄
+     */
+
+    recordResult(
+        currentResult.name
+    );
+}
+
+
+/* =========================================================
+   下載結果圖片
+========================================================= */
+
+async function downloadResult() {
+
+    if (!currentResult) {
+        return;
+    }
+
+
+    const image =
+        new Image();
+
+    image.crossOrigin =
+        "anonymous";
+
+
+    image.onload =
+        function() {
+
+            /*
+             * 4:5 圖片
+             *
+             * 上面增加標題
+             */
+
+            const width =
+                1200;
+
+            const imageHeight =
+                1500;
+
+            const titleHeight =
+                180;
+
+            const canvas =
+                document.createElement(
+                    "canvas"
+                );
+
+            canvas.width =
+                width;
+
+            canvas.height =
+                imageHeight +
+                titleHeight;
+
+
+            const ctx =
+                canvas.getContext(
+                    "2d"
+                );
+
+
+            /*
+             * 白色背景
+             */
+
+            ctx.fillStyle =
+                "#ffffff";
+
+            ctx.fillRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            /*
+             * 標題
+             */
+
+            ctx.fillStyle =
+                "#111111";
+
+            ctx.textAlign =
+                "center";
+
+            ctx.textBaseline =
+                "middle";
+
+            ctx.font =
+                "bold 65px Microsoft JhengHei, sans-serif";
+
+            ctx.fillText(
+                `你是一臺${currentResult.name}`,
+                width / 2,
+                titleHeight / 2
+            );
+
+
+            /*
+             * 圖片
+             */
+
+            ctx.drawImage(
+                image,
+                0,
+                titleHeight,
+                width,
+                imageHeight
+            );
+
+
+            /*
+             * 下載
+             */
+
+            canvas.toBlob(
+                function(blob) {
+
+                    const url =
+                        URL.createObjectURL(
+                            blob
+                        );
+
+                    const a =
+                        document.createElement(
+                            "a"
+                        );
+
+                    a.href =
+                        url;
+
+                    a.download =
+                        `你是一臺${currentResult.name}.jpg`;
+
+                    document.body
+                        .appendChild(a);
+
+                    a.click();
+
+                    a.remove();
+
+                    URL.revokeObjectURL(
+                        url
+                    );
+
+                },
+                "image/jpeg",
+                0.95
+            );
+
+        };
+
+
+    image.onerror =
+        function() {
+
+            alert(
+                "圖片無法讀取，請確認 results 資料夾中的圖片名稱是否正確。"
+            );
+
+        };
+
+
+    image.src =
+        currentResult.image;
+
+}
+
+
+/* =========================================================
+   統計
+========================================================= */
+
+
+/*
+ * 如果沒有設定 Supabase，
+ * 先使用瀏覽器自己的 localStorage。
+ *
+ * 這樣網站即使還沒設定 Supabase
+ * 也可以正常測驗。
+ */
+
+function getLocalStats() {
+
+    let data =
+        localStorage.getItem(
+            "vehicleQuizStats"
+        );
+
+
+    if (!data) {
+
+        data = {
+            total: 0,
+            results: {}
+        };
+
+        Object.values(results)
+            .forEach(result => {
+
+                data.results[
+                    result.name
+                ] = 0;
+
+            });
+
+        localStorage.setItem(
+            "vehicleQuizStats",
+            JSON.stringify(data)
+        );
+
+    } else {
+
+        data =
+            JSON.parse(data);
+
+    }
+
+
+    return data;
+}
+
+
+function saveLocalResult(
+    resultName
+) {
+
+    const data =
+        getLocalStats();
+
+
+    data.total++;
+
+
+    if (
+        typeof data.results[
+            resultName
+        ] !== "number"
+    ) {
+
+        data.results[
+            resultName
+        ] = 0;
+
+    }
+
+
+    data.results[
+        resultName
+    ]++;
+
+
+    localStorage.setItem(
+        "vehicleQuizStats",
+        JSON.stringify(data)
+    );
+
+
+    updateHomeTotal(
+        data.total
+    );
+
+}
+
+
+/* =========================================================
+   記錄結果
+========================================================= */
+
+async function recordResult(
+    resultName
+) {
+
+    /*
+     * 已設定 Supabase
+     */
+
+    if (supabaseClient) {
+
+        const {
+            error
+        } =
+        await supabaseClient.rpc(
+            "record_result",
+            {
+                p_result_name:
+                    resultName
+            }
+        );
+
+
+        if (!error) {
+
+            await loadStats();
+
+            return;
+
+        }
+
+        console.error(
+            "Supabase record error:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Supabase 沒設定或失敗
+     * 使用 localStorage
+     */
+
+    saveLocalResult(
+        resultName
+    );
+
+    loadStats();
+
+}
+
+
+/* =========================================================
+   讀取統計
+========================================================= */
+
+async function loadStats() {
+
+    /*
+     * Supabase
+     */
+
+    if (supabaseClient) {
+
+        try {
+
+            const totalResponse =
+                await supabaseClient
+                    .from("site_stats")
+                    .select(
+                        "total_completed"
+                    )
+                    .eq("id", 1)
+                    .single();
+
+
+            const resultResponse =
+                await supabaseClient
+                    .from("result_stats")
+                    .select(
+                        "result_name,count"
+                    );
+
+
+            if (
+                !totalResponse.error &&
+                !resultResponse.error
+            ) {
+
+                updateHomeTotal(
+                    totalResponse.data
+                        .total_completed
+                );
+
+
+                renderStats(
+                    resultResponse.data,
+                    totalResponse.data
+                        .total_completed
+                );
+
+
+                return;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Supabase load error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+     * LocalStorage
+     */
+
+    const data =
+        getLocalStats();
+
+
+    updateHomeTotal(
+        data.total
+    );
+
+
+    const rows =
+        Object.entries(
+            data.results
+        ).map(
+            ([result_name, count]) => ({
+                result_name,
+                count
+            })
+        );
+
+
+    renderStats(
+        rows,
+        data.total
+    );
+
+}
+
+
+/* =========================================================
+   更新首頁人數
+========================================================= */
+
+function updateHomeTotal(
+    total
+) {
+
+    document.getElementById(
+        "homeTotal"
+    ).textContent =
+        Number(total || 0)
+            .toLocaleString();
+
+}
+
+
+/* =========================================================
+   顯示統計
+========================================================= */
+
+function renderStats(
+    rows,
+    total
+) {
+
+    const list =
+        document.getElementById(
+            "statsList"
+        );
+
+
+    list.innerHTML = "";
+
+
+    /*
+     * 固定照這個順序
+     */
+
+    const order = [
+        "卡車",
+        "巴士",
+        "吉普車",
+        "計程車",
+        "挖土機",
+        "推土機",
+        "水車",
+        "飛機"
+    ];
+
+
+    order.forEach(
+        name => {
+
+            const found =
+                rows.find(
+                    row =>
+                        row.result_name ===
+                        name
+                );
+
+
+            const count =
+                found
+                    ? Number(found.count)
+                    : 0;
+
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "stats-row";
+
+
+            row.innerHTML = `
+                <span>${name}</span>
+                <span>${count.toLocaleString()} 人</span>
+            `;
+
+
+            list.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    document.getElementById(
+        "statsTotal"
+    ).textContent =
+        `總完成次數：${Number(total || 0).toLocaleString()} 次`;
+
+}
+
+
+/* =========================================================
+   網頁載入
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        loadStats();
+
+    }
+);
+
+</script>
 
 </body>
 </html>
