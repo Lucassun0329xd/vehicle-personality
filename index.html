@@ -404,24 +404,72 @@ body {
     display: block;
 }
 
-.analysis-box {
-    max-width: 600px;
-    margin: 25px auto;
-    padding: 20px;
-    background: rgba(255,255,255,.92);
-    border: 1px solid #888;
-    border-radius: 8px;
+.user-name-page {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px 15px;
 }
 
-.traits {
+.user-name-title {
+    font-size: clamp(32px, 6vw, 54px);
+    font-weight: 900;
+    margin: 0 0 14px;
+    text-shadow: 2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,.12);
+}
+
+.user-name-note {
+    margin: 0 0 22px;
+    font-size: 16px;
+}
+
+.user-name-input {
+    width: min(420px, 88vw);
+    padding: 14px 16px;
+    border: 2px solid #111;
+    border-radius: 7px;
+    background: rgba(255,255,255,.95);
+    font-size: 20px;
+    text-align: center;
+    outline: none;
+}
+
+.user-name-input:focus {
+    box-shadow: 3px 3px 0 #111;
+}
+
+.user-name-button {
+    min-width: 190px;
+    padding: 12px 28px;
+    margin-top: 16px;
+    border: 2px solid #111;
+    border-radius: 7px;
+    background: white;
+    color: #111;
     font-size: 18px;
     font-weight: bold;
-    margin-bottom: 12px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 #111;
 }
 
-.analysis {
-    font-size: 16px;
-    line-height: 1.8;
+.user-name-error {
+    display: none;
+    margin-top: 12px;
+    color: #a00;
+    font-weight: bold;
+}
+
+.result-user-name {
+    max-width: 90%;
+    margin: 10px auto 0;
+    font-size: clamp(22px, 4vw, 38px);
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .download-button {
@@ -435,17 +483,6 @@ body {
     cursor: pointer;
 }
 
-.restart-button {
-    padding: 12px 28px;
-    margin: 5px;
-    border: 2px solid #111;
-    border-radius: 6px;
-    background: #111;
-    color: white;
-    font-size: 17px;
-    font-weight: bold;
-    cursor: pointer;
-}
 
 /* =========================
    統計
@@ -508,6 +545,18 @@ body {
     .home-button {
         min-width: 190px;
         font-size: 17px;
+    }
+
+    .user-name-title {
+        font-size: 38px;
+    }
+
+    .user-name-input {
+        font-size: 18px;
+    }
+
+    .result-user-name {
+        font-size: 24px;
     }
 
     .question {
@@ -658,6 +707,42 @@ body {
 
 
     <!-- =========================
+         填寫名字
+    ========================= -->
+
+    <section id="nameScreen" class="screen">
+
+        <div class="user-name-page">
+
+            <h1 class="user-name-title">最後一步</h1>
+
+            <p class="user-name-note">請輸入你的名字（最多 8 個字）</p>
+
+            <input
+                id="userNameInput"
+                class="user-name-input"
+                type="text"
+                maxlength="8"
+                autocomplete="name"
+                placeholder="輸入名字"
+                onkeydown="if(event.key === 'Enter') submitUserName()"
+            >
+
+            <button
+                class="user-name-button"
+                onclick="submitUserName()"
+            >
+                查看我的載具
+            </button>
+
+            <div id="userNameError" class="user-name-error">請輸入名字</div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
          分析中
     ========================= -->
 
@@ -680,6 +765,8 @@ body {
 
         <div class="result-page">
 
+            <div class="result-user-name" id="resultUserName"></div>
+
             <div class="result-title" id="resultTitle">
                 你是一臺卡車
             </div>
@@ -695,28 +782,11 @@ body {
 
             </div>
 
-            <div class="analysis-box">
-
-                <div
-                    class="analysis"
-                    id="resultAnalysis"
-                >
-                </div>
-
-            </div>
-
             <button
                 class="download-button"
                 onclick="downloadResult()"
             >
                 下載圖片
-            </button>
-
-            <button
-                class="restart-button"
-                onclick="startQuiz()"
-            >
-                再測一次
             </button>
 
 
@@ -1022,6 +1092,7 @@ const results = {
 let answers = [];
 
 let currentResult = null;
+let userName = "";
 
 
 /* =========================================================
@@ -1260,12 +1331,44 @@ function finishQuiz() {
     }
 
 
+    showScreen("nameScreen");
+
+    const nameInput = document.getElementById("userNameInput");
+    const nameError = document.getElementById("userNameError");
+    nameInput.value = "";
+    nameError.style.display = "none";
+    setTimeout(function() {
+        nameInput.focus();
+    }, 150);
+
+}
+
+
+/* =========================================================
+   填寫名字後進入結果
+========================================================= */
+
+function submitUserName() {
+
+    const input = document.getElementById("userNameInput");
+    const error = document.getElementById("userNameError");
+    const value = input.value.trim();
+
+    if (!value) {
+        error.textContent = "請輸入名字";
+        error.style.display = "block";
+        input.focus();
+        return;
+    }
+
+    userName = value.slice(0, 8);
+    error.style.display = "none";
+
     showScreen("analysisScreen");
 
     setTimeout(function() {
         showResult();
     }, 2500);
-
 }
 
 
@@ -1276,17 +1379,14 @@ function finishQuiz() {
 function showResult() {
 
     document.getElementById(
+        "resultUserName"
+    ).textContent =
+        userName;
+
+    document.getElementById(
         "resultTitle"
     ).textContent =
         `你是一臺${currentResult.name}`;
-
-
-
-
-    document.getElementById(
-        "resultAnalysis"
-    ).textContent =
-        currentResult.analysis;
 
 
     document.getElementById(
@@ -1344,7 +1444,7 @@ async function downloadResult() {
                 1500;
 
             const titleHeight =
-                180;
+                280;
 
             const canvas =
                 document.createElement(
@@ -1394,12 +1494,21 @@ async function downloadResult() {
                 "middle";
 
             ctx.font =
+                "bold 48px Microsoft JhengHei, sans-serif";
+
+            ctx.fillText(
+                userName,
+                width / 2,
+                75
+            );
+
+            ctx.font =
                 "bold 65px Microsoft JhengHei, sans-serif";
 
             ctx.fillText(
                 `你是一臺${currentResult.name}`,
                 width / 2,
-                titleHeight / 2
+                190
             );
 
 
