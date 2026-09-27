@@ -1579,6 +1579,17 @@ async function recordResult(
 ) {
 
     /*
+     * 同一個瀏覽器只計入第一次完成測驗。
+     * 可以重測、可以看結果，但不會再次增加統計。
+     */
+    const FIRST_COMPLETION_KEY = "vehicleQuizFirstCompleted";
+
+    if (localStorage.getItem(FIRST_COMPLETION_KEY) === "1") {
+        await loadStats();
+        return;
+    }
+
+    /*
      * 已設定 Supabase
      */
 
@@ -1597,6 +1608,12 @@ async function recordResult(
 
 
         if (!error) {
+
+            /* 只有成功寫入 Supabase 後才標記為已計入。 */
+            localStorage.setItem(
+                "vehicleQuizFirstCompleted",
+                "1"
+            );
 
             await loadStats();
 
@@ -1619,6 +1636,12 @@ async function recordResult(
 
     saveLocalResult(
         resultName
+    );
+
+    /* localStorage 模式成功記錄後也鎖定第一次。 */
+    localStorage.setItem(
+        "vehicleQuizFirstCompleted",
+        "1"
     );
 
     loadStats();
