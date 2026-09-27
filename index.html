@@ -1453,13 +1453,45 @@ async function downloadResult() {
         return;
     }
 
-    canvas.toBlob(function(blob) {
+    canvas.toBlob(async function(blob) {
 
         if (!blob) {
             alert("圖片製作失敗，請再試一次。");
             return;
         }
 
+        const fileName =
+            `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
+
+        /*
+           手機瀏覽器常常不理會 <a download>，
+           反而會直接把圖片開在新頁面。
+           手機優先使用 Web Share，讓使用者在系統分享選單
+           選「儲存影像／儲存到照片」；桌機則維持正常下載。
+        */
+        try {
+            const file =
+                new File([blob], fileName, { type: "image/jpeg" });
+
+            if (
+                navigator.share &&
+                navigator.canShare &&
+                navigator.canShare({ files: [file] })
+            ) {
+                await navigator.share({
+                    files: [file],
+                    title: fileName
+                });
+                return;
+            }
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("手機分享圖片失敗：", error);
+        }
+
+        // 不支援 Web Share 的裝置／桌機，使用原本的下載方式。
         const url =
             URL.createObjectURL(blob);
 
@@ -1467,392 +1499,16 @@ async function downloadResult() {
             document.createElement("a");
 
         a.href = url;
-        a.download = `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
+        a.download = fileName;
+        a.style.display = "none";
 
         document.body.appendChild(a);
         a.click();
         a.remove();
 
-        URL.revokeObjectURL(url);
+        setTimeout(function() {
+            URL.revokeObjectURL(url);
+        }, 1000);
 
     }, "image/jpeg", 0.95);
 }
-
-
-
-/* =========================================================
-   統計
-========================================================= */
-
-
-/*
- * 如果沒有設定 Supabase，
- * 先使用瀏覽器自己的 localStorage。
- *
- * 這樣網站即使還沒設定 Supabase
- * 也可以正常測驗。
- */
-
-function getLocalStats() {
-
-    let data =
-        localStorage.getItem(
-            "vehicleQuizStats"
-        );
-
-
-    if (!data) {
-
-        data = {
-            total: 0,
-            results: {}
-        };
-
-        Object.values(results)
-            .forEach(result => {
-
-                data.results[
-                    result.name
-                ] = 0;
-
-            });
-
-        localStorage.setItem(
-            "vehicleQuizStats",
-            JSON.stringify(data)
-        );
-
-    } else {
-
-        data =
-            JSON.parse(data);
-
-    }
-
-
-    return data;
-}
-
-
-function saveLocalResult(
-    resultName
-) {
-
-    const data =
-        getLocalStats();
-
-
-    data.total++;
-
-
-    if (
-        typeof data.results[
-            resultName
-        ] !== "number"
-    ) {
-
-        data.results[
-            resultName
-        ] = 0;
-
-    }
-
-
-    data.results[
-        resultName
-    ]++;
-
-
-    localStorage.setItem(
-        "vehicleQuizStats",
-        JSON.stringify(data)
-    );
-
-
-    updateHomeTotal(
-        data.total
-    );
-
-}
-
-
-/* =========================================================
-   記錄結果
-========================================================= */
-
-async function recordResult(
-    resultName
-) {
-
-    /*
-     * 同一個瀏覽器只計入第一次完成測驗。
-     * 可以重測、可以看結果，但不會再次增加統計。
-     */
-    const FIRST_COMPLETION_KEY = "vehicleQuizFirstCompleted";
-
-    if (localStorage.getItem(FIRST_COMPLETION_KEY) === "1") {
-        await loadStats();
-        return;
-    }
-
-    /*
-     * 已設定 Supabase
-     */
-
-    if (supabaseClient) {
-
-        const {
-            error
-        } =
-        await supabaseClient.rpc(
-            "record_result",
-            {
-                p_result_name:
-                    resultName
-            }
-        );
-
-
-        if (!error) {
-
-            /* 只有成功寫入 Supabase 後才標記為已計入。 */
-            localStorage.setItem(
-                "vehicleQuizFirstCompleted",
-                "1"
-            );
-
-            await loadStats();
-
-            return;
-
-        }
-
-        console.error(
-            "Supabase record error:",
-            error
-        );
-
-    }
-
-
-    /*
-     * Supabase 沒設定或失敗
-     * 使用 localStorage
-     */
-
-    saveLocalResult(
-        resultName
-    );
-
-    /* localStorage 模式成功記錄後也鎖定第一次。 */
-    localStorage.setItem(
-        "vehicleQuizFirstCompleted",
-        "1"
-    );
-
-    loadStats();
-
-}
-
-
-/* =========================================================
-   讀取統計
-========================================================= */
-
-async function loadStats() {
-
-    /*
-     * Supabase
-     */
-
-    if (supabaseClient) {
-
-        try {
-
-            const totalResponse =
-                await supabaseClient
-                    .from("site_stats")
-                    .select(
-                        "total_completed"
-                    )
-                    .eq("id", 1)
-                    .single();
-
-
-            const resultResponse =
-                await supabaseClient
-                    .from("result_stats")
-                    .select(
-                        "result_name,count"
-                    );
-
-
-            if (
-                !totalResponse.error &&
-                !resultResponse.error
-            ) {
-
-                updateHomeTotal(
-                    totalResponse.data
-                        .total_completed
-                );
-
-
-                renderStats(
-                    resultResponse.data
-                );
-
-
-                return;
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Supabase load error:",
-                error
-            );
-
-        }
-
-    }
-
-
-    /*
-     * LocalStorage
-     */
-
-    const data =
-        getLocalStats();
-
-
-    updateHomeTotal(
-        data.total
-    );
-
-
-    const rows =
-        Object.entries(
-            data.results
-        ).map(
-            ([result_name, count]) => ({
-                result_name,
-                count
-            })
-        );
-
-
-    renderStats(
-        rows
-    );
-
-}
-
-
-/* =========================================================
-   更新首頁人數
-========================================================= */
-
-function updateHomeTotal(
-    total
-) {
-
-    document.getElementById(
-        "homeTotal"
-    ).textContent =
-        Number(total || 0)
-            .toLocaleString();
-
-}
-
-
-/* =========================================================
-   顯示統計
-========================================================= */
-
-function renderStats(
-    rows
-) {
-
-    const list =
-        document.getElementById(
-            "statsList"
-        );
-
-
-    list.innerHTML = "";
-
-
-    /*
-     * 固定照這個順序
-     */
-
-    const order = [
-        "卡車",
-        "巴士",
-        "吉普車",
-        "計程車",
-        "挖土機",
-        "推土機",
-        "水車",
-        "飛機"
-    ];
-
-
-    order.forEach(
-        name => {
-
-            const found =
-                rows.find(
-                    row =>
-                        row.result_name ===
-                        name
-                );
-
-
-            const count =
-                found
-                    ? Number(found.count)
-                    : 0;
-
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "stats-row";
-
-
-            row.innerHTML = `
-                <span>${name}</span>
-                <span>${count.toLocaleString()} 人</span>
-            `;
-
-
-            list.appendChild(
-                row
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   網頁載入
-========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        loadStats();
-
-    }
-);
-
-</script>
