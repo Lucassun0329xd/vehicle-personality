@@ -1408,7 +1408,7 @@ function drawResultCanvas() {
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.font = 'bold 80px "FangSong", "STFangsong", "仿宋", serif';
+        ctx.font = 'bold 96px "FangSong", "STFangsong", "仿宋", serif';
 
         let displayName = userName || "";
         if (displayName.length > 8) {
@@ -1444,12 +1444,11 @@ async function downloadResult() {
         return;
     }
 
-    const canvas =
-        document.getElementById("resultImage");
+    const canvas = document.getElementById("resultImage");
 
-    if (!canvas.width) {
+    if (!canvas || !canvas.width) {
         drawResultCanvas();
-        setTimeout(downloadResult, 300);
+        setTimeout(downloadResult, 500);
         return;
     }
 
@@ -1460,48 +1459,38 @@ async function downloadResult() {
             return;
         }
 
-        const fileName =
-            `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
+        const fileName = `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
 
-        /*
-           手機瀏覽器常常不理會 <a download>，
-           反而會直接把圖片開在新頁面。
-           手機優先使用 Web Share，讓使用者在系統分享選單
-           選「儲存影像／儲存到照片」；桌機則維持正常下載。
-        */
-        try {
-            const file =
-                new File([blob], fileName, { type: "image/jpeg" });
+        // 手機支援檔案分享時，直接叫出系統分享選單。
+        // 使用者可在選單中選「儲存影像／儲存到照片」。
+        if (typeof navigator.share === "function" && typeof File !== "undefined") {
+            try {
+                const file = new File([blob], fileName, { type: "image/jpeg" });
+                const canShareFiles =
+                    typeof navigator.canShare !== "function" ||
+                    navigator.canShare({ files: [file] });
 
-            if (
-                navigator.share &&
-                navigator.canShare &&
-                navigator.canShare({ files: [file] })
-            ) {
-                await navigator.share({
-                    files: [file],
-                    title: fileName
-                });
-                return;
+                if (canShareFiles) {
+                    await navigator.share({
+                        files: [file],
+                        title: fileName
+                    });
+                    return;
+                }
+            } catch (error) {
+                // 使用者關閉分享選單時，不做任何事；其他錯誤則改用下載。
+                if (error && error.name === "AbortError") {
+                    return;
+                }
             }
-        } catch (error) {
-            if (error && error.name === "AbortError") {
-                return;
-            }
-            console.error("手機分享圖片失敗：", error);
         }
 
-        // 不支援 Web Share 的裝置／桌機，使用原本的下載方式。
-        const url =
-            URL.createObjectURL(blob);
-
-        const a =
-            document.createElement("a");
-
+        // 桌機與不支援檔案分享的瀏覽器，使用標準下載。
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
         a.href = url;
         a.download = fileName;
         a.style.display = "none";
-
         document.body.appendChild(a);
         a.click();
         a.remove();
