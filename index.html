@@ -831,6 +831,172 @@ if (
 
 
 /* =========================================================
+   統計同步
+========================================================= */
+
+const FIRST_COMPLETION_KEY = "vehicleQuizFirstCompletionCounted";
+const LOCAL_RESULT_KEY = "vehicleQuizLocalResultStats";
+
+function hasCountedFirstCompletion() {
+    try {
+        return localStorage.getItem(FIRST_COMPLETION_KEY) === "1";
+    } catch (e) {
+        return false;
+    }
+}
+
+function markFirstCompletionCounted() {
+    try {
+        localStorage.setItem(FIRST_COMPLETION_KEY, "1");
+    } catch (e) {
+        console.warn("無法寫入瀏覽器記錄：", e);
+    }
+}
+
+function saveLocalResult(resultName) {
+    try {
+        const raw = localStorage.getItem(LOCAL_RESULT_KEY);
+        const data = raw ? JSON.parse(raw) : {};
+        data[resultName] = Number(data[resultName] || 0) + 1;
+        localStorage.setItem(LOCAL_RESULT_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.warn("無法儲存本機統計：", e);
+    }
+}
+
+function getLocalResultStats() {
+    try {
+        const raw = localStorage.getItem(LOCAL_RESULT_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function renderStats(total, rows) {
+    const homeTotal = document.getElementById("homeTotal");
+    const statsList = document.getElementById("statsList");
+
+    if (homeTotal) {
+        homeTotal.textContent = Number(total || 0).toLocaleString("zh-TW");
+    }
+
+    if (!statsList) return;
+
+    statsList.innerHTML = "";
+
+    const names = [
+        "卡車", "巴士", "吉普車", "計程車",
+        "挖土機", "推土機", "水車", "飛機"
+    ];
+
+    names.forEach(function(name) {
+        const row = document.createElement("div");
+        row.className = "stats-row";
+
+        const nameEl = document.createElement("span");
+        nameEl.textContent = name;
+
+        const countEl = document.createElement("span");
+        countEl.textContent = Number(rows[name] || 0).toLocaleString("zh-TW");
+
+        row.appendChild(nameEl);
+        row.appendChild(countEl);
+        statsList.appendChild(row);
+    });
+
+    const totalRow = document.createElement("div");
+    totalRow.className = "stats-total";
+    totalRow.textContent = `總完成次數：${Number(total || 0).toLocaleString("zh-TW")}`;
+    statsList.appendChild(totalRow);
+}
+
+async function loadStats() {
+    const statsList = document.getElementById("statsList");
+
+    try {
+        if (!supabaseClient) {
+            throw new Error("Supabase 尚未初始化");
+        }
+
+        const [siteResponse, resultResponse] = await Promise.all([
+            supabaseClient
+                .from("site_stats")
+                .select("total_completed")
+                .eq("id", 1)
+                .maybeSingle(),
+            supabaseClient
+                .from("result_stats")
+                .select("result_name,count")
+        ]);
+
+        if (siteResponse.error) throw siteResponse.error;
+        if (resultResponse.error) throw resultResponse.error;
+
+        const total = siteResponse.data
+            ? Number(siteResponse.data.total_completed || 0)
+            : 0;
+
+        const rows = {};
+        (resultResponse.data || []).forEach(function(item) {
+            rows[item.result_name] = Number(item.count || 0);
+        });
+
+        renderStats(total, rows);
+        return;
+
+    } catch (error) {
+        console.error("統計同步失敗：", error);
+
+        /* Supabase 暫時讀不到時，不讓頁面卡在「載入中」 */
+        const local = getLocalResultStats();
+        const localTotal = Object.values(local).reduce(function(sum, value) {
+            return sum + Number(value || 0);
+        }, 0);
+
+        renderStats(localTotal, local);
+
+        if (statsList && localTotal === 0) {
+            statsList.insertAdjacentHTML(
+                "afterbegin",
+                '<div style="margin-bottom:10px;font-size:14px;color:#777;">目前無法連線到同步統計，請稍後重新整理。</div>'
+            );
+        }
+    }
+}
+
+async function recordResult(resultName) {
+    /* 同一個瀏覽器只計算第一次完成 */
+    if (hasCountedFirstCompletion()) {
+        return;
+    }
+
+    if (supabaseClient) {
+        try {
+            const { error } = await supabaseClient.rpc("record_result", {
+                p_result_name: resultName
+            });
+
+            if (!error) {
+                markFirstCompletionCounted();
+                await loadStats();
+                return;
+            }
+
+            console.error("Supabase record error:", error);
+        } catch (error) {
+            console.error("Supabase record exception:", error);
+        }
+    }
+
+    /* 網路 / Supabase 暫時失敗時，至少保留本機統計 */
+    saveLocalResult(resultName);
+    markFirstCompletionCounted();
+    await loadStats();
+}
+
+
+/* =========================================================
    題目
 ========================================================= */
 
@@ -1614,6 +1780,10 @@ function showMobileSaveImage(blob) {
 
     document.body.appendChild(overlay);
 }
+
+
+/* 頁面載入後立即同步首頁與結果統計 */
+loadStats();
 
 </script>
 </body>
