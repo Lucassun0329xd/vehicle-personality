@@ -377,11 +377,6 @@ body {
     padding-bottom: 60px;
 }
 
-.result-title {
-    font-size: clamp(34px, 6vw, 58px);
-    font-weight: 900;
-    margin: 20px 0 10px;
-}
 
 .result-subtitle {
     font-size: 18px;
@@ -755,10 +750,6 @@ body {
     <section id="resultScreen" class="screen">
 
         <div class="result-page">
-
-            <div class="result-title" id="resultTitle">
-                你是一臺卡車
-            </div>
 
             <div class="result-image-wrap">
 
@@ -1366,12 +1357,6 @@ function submitUserName() {
 
 function showResult() {
 
-    document.getElementById(
-        "resultTitle"
-    ).textContent =
-        `你是一臺${currentResult.name}`;
-
-
     drawResultCanvas();
 
 
@@ -1419,15 +1404,7 @@ function drawResultCanvas() {
 
         ctx.drawImage(image, 0, 0, width, height);
 
-        /*
-         * 蓋掉原本圖片裡的示範名字與
-         *「（像是這樣 字體是仿宋體）」這句話。
-         * 這一塊位於黑板左上方。
-         */
-        ctx.fillStyle = "#242424";
-        ctx.fillRect(45, 105, width * 0.48, 205);
-
-        /* 使用者名字放在黑板左上方 */
+        /* 使用者名字直接寫在圖片上，不加任何背景框 */
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
@@ -1439,7 +1416,7 @@ function drawResultCanvas() {
         }
 
         /* 長名字自動縮小，避免超出黑板區域 */
-        const maxNameWidth = width * 0.43;
+        const maxNameWidth = width * 0.42;
         while (ctx.measureText(displayName).width > maxNameWidth && parseInt(ctx.font) > 40) {
             const size = parseInt(ctx.font) - 4;
             ctx.font = `bold ${size}px FangSong, "仿宋", "Microsoft JhengHei", serif`;
