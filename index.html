@@ -1440,13 +1440,11 @@ function drawResultCanvas() {
 
 async function downloadResult() {
 
-    if (!currentResult) {
-        return;
-    }
+    if (!currentResult) return;
 
     const canvas = document.getElementById("resultImage");
 
-    if (!canvas || !canvas.width) {
+    if (!canvas.width) {
         drawResultCanvas();
         setTimeout(downloadResult, 500);
         return;
@@ -1459,38 +1457,68 @@ async function downloadResult() {
             return;
         }
 
-        const fileName = `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
+        const fileName =
+            `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
 
-        // 手機支援檔案分享時，直接叫出系統分享選單。
-        // 使用者可在選單中選「儲存影像／儲存到照片」。
-        if (typeof navigator.share === "function" && typeof File !== "undefined") {
+        const isMobile =
+            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        if (isMobile) {
+
+            /*
+             * 手機不使用 <a download>，避免直接跳出圖片。
+             * 優先使用系統分享；若不支援，顯示圖片供長按儲存。
+             */
+
             try {
-                const file = new File([blob], fileName, { type: "image/jpeg" });
-                const canShareFiles =
-                    typeof navigator.canShare !== "function" ||
-                    navigator.canShare({ files: [file] });
 
-                if (canShareFiles) {
+                const file =
+                    new File([blob], fileName, {
+                        type: "image/jpeg"
+                    });
+
+                if (
+                    navigator.share &&
+                    navigator.canShare &&
+                    navigator.canShare({ files: [file] })
+                ) {
+
                     await navigator.share({
                         files: [file],
                         title: fileName
                     });
+
                     return;
                 }
+
             } catch (error) {
-                // 使用者關閉分享選單時，不做任何事；其他錯誤則改用下載。
-                if (error && error.name === "AbortError") {
+
+                if (
+                    error &&
+                    error.name === "AbortError"
+                ) {
                     return;
                 }
+
+                console.log(
+                    "手機分享不可用，改用長按圖片儲存。",
+                    error
+                );
             }
+
+            showMobileSaveImage(blob);
+            return;
         }
 
-        // 桌機與不支援檔案分享的瀏覽器，使用標準下載。
+        /* 電腦正常下載 */
         const url = URL.createObjectURL(blob);
+
         const a = document.createElement("a");
+
         a.href = url;
         a.download = fileName;
         a.style.display = "none";
+
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -1501,3 +1529,92 @@ async function downloadResult() {
 
     }, "image/jpeg", 0.95);
 }
+
+
+function showMobileSaveImage(blob) {
+
+    const old =
+        document.getElementById("mobileSaveOverlay");
+
+    if (old) old.remove();
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const overlay =
+        document.createElement("div");
+
+    overlay.id =
+        "mobileSaveOverlay";
+
+    overlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: rgba(0,0,0,.88);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    `;
+
+    const text =
+        document.createElement("div");
+
+    text.textContent =
+        "長按下面圖片 → 儲存到照片";
+
+    text.style.cssText = `
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 16px;
+        text-align: center;
+    `;
+
+    const img =
+        document.createElement("img");
+
+    img.src = url;
+
+    img.style.cssText = `
+        max-width: 92vw;
+        max-height: 72vh;
+        object-fit: contain;
+        background: black;
+        -webkit-user-select: none;
+        user-select: none;
+    `;
+
+    const close =
+        document.createElement("button");
+
+    close.textContent = "關閉";
+
+    close.style.cssText = `
+        margin-top: 16px;
+        padding: 10px 28px;
+        border: 2px solid white;
+        border-radius: 7px;
+        background: white;
+        color: #111;
+        font-size: 16px;
+        font-weight: bold;
+    `;
+
+    close.onclick = function() {
+        URL.revokeObjectURL(url);
+        overlay.remove();
+    };
+
+    overlay.appendChild(text);
+    overlay.appendChild(img);
+    overlay.appendChild(close);
+
+    document.body.appendChild(overlay);
+}
+
+</script>
+</body>
+</html>
