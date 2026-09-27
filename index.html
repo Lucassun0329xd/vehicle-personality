@@ -462,15 +462,6 @@ body {
     font-weight: bold;
 }
 
-.result-user-name {
-    max-width: 90%;
-    margin: 10px auto 0;
-    font-size: clamp(22px, 4vw, 38px);
-    font-weight: 900;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
 .download-button {
     padding: 12px 28px;
@@ -765,20 +756,17 @@ body {
 
         <div class="result-page">
 
-            <div class="result-user-name" id="resultUserName"></div>
-
             <div class="result-title" id="resultTitle">
                 你是一臺卡車
             </div>
 
             <div class="result-image-wrap">
 
-                <img
+                <canvas
                     id="resultImage"
                     class="result-image"
-                    src=""
-                    alt="載具結果"
-                >
+                    aria-label="載具結果"
+                ></canvas>
 
             </div>
 
@@ -1379,20 +1367,12 @@ function submitUserName() {
 function showResult() {
 
     document.getElementById(
-        "resultUserName"
-    ).textContent =
-        userName;
-
-    document.getElementById(
         "resultTitle"
     ).textContent =
         `你是一臺${currentResult.name}`;
 
 
-    document.getElementById(
-        "resultImage"
-    ).src =
-        currentResult.image;
+    drawResultCanvas();
 
 
     showScreen(
@@ -1411,6 +1391,73 @@ function showResult() {
 
 
 /* =========================================================
+   在結果圖片內放入使用者名字
+========================================================= */
+
+function drawResultCanvas() {
+
+    if (!currentResult) {
+        return;
+    }
+
+    const canvas =
+        document.getElementById("resultImage");
+
+    const ctx =
+        canvas.getContext("2d");
+
+    const image =
+        new Image();
+
+    image.onload = function() {
+
+        const width = image.naturalWidth || 1200;
+        const height = image.naturalHeight || 1500;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.drawImage(image, 0, 0, width, height);
+
+        /*
+         * 蓋掉原本圖片裡的示範名字與
+         *「（像是這樣 字體是仿宋體）」這句話。
+         * 這一塊位於黑板左上方。
+         */
+        ctx.fillStyle = "#242424";
+        ctx.fillRect(45, 105, width * 0.48, 205);
+
+        /* 使用者名字放在黑板左上方 */
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.font = 'bold 86px FangSong, "仿宋", "Microsoft JhengHei", serif';
+
+        let displayName = userName || "";
+        if (displayName.length > 8) {
+            displayName = displayName.slice(0, 8);
+        }
+
+        /* 長名字自動縮小，避免超出黑板區域 */
+        const maxNameWidth = width * 0.43;
+        while (ctx.measureText(displayName).width > maxNameWidth && parseInt(ctx.font) > 40) {
+            const size = parseInt(ctx.font) - 4;
+            ctx.font = `bold ${size}px FangSong, "仿宋", "Microsoft JhengHei", serif`;
+        }
+
+        ctx.fillText(displayName, 70, 125);
+    };
+
+    image.onerror = function() {
+        console.error("結果圖片無法讀取：", currentResult.image);
+    };
+
+    image.src = currentResult.image;
+}
+
+
+
+/* =========================================================
    下載結果圖片
 ========================================================= */
 
@@ -1420,167 +1467,40 @@ async function downloadResult() {
         return;
     }
 
+    const canvas =
+        document.getElementById("resultImage");
 
-    const image =
-        new Image();
+    if (!canvas.width) {
+        drawResultCanvas();
+        setTimeout(downloadResult, 300);
+        return;
+    }
 
-    image.crossOrigin =
-        "anonymous";
+    canvas.toBlob(function(blob) {
 
+        if (!blob) {
+            alert("圖片製作失敗，請再試一次。");
+            return;
+        }
 
-    image.onload =
-        function() {
+        const url =
+            URL.createObjectURL(blob);
 
-            /*
-             * 4:5 圖片
-             *
-             * 上面增加標題
-             */
+        const a =
+            document.createElement("a");
 
-            const width =
-                1200;
+        a.href = url;
+        a.download = `你是一臺${currentResult.name}_${userName || "匿名"}.jpg`;
 
-            const imageHeight =
-                1500;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
 
-            const titleHeight =
-                280;
+        URL.revokeObjectURL(url);
 
-            const canvas =
-                document.createElement(
-                    "canvas"
-                );
-
-            canvas.width =
-                width;
-
-            canvas.height =
-                imageHeight +
-                titleHeight;
-
-
-            const ctx =
-                canvas.getContext(
-                    "2d"
-                );
-
-
-            /*
-             * 白色背景
-             */
-
-            ctx.fillStyle =
-                "#ffffff";
-
-            ctx.fillRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-
-            /*
-             * 標題
-             */
-
-            ctx.fillStyle =
-                "#111111";
-
-            ctx.textAlign =
-                "center";
-
-            ctx.textBaseline =
-                "middle";
-
-            ctx.font =
-                "bold 48px Microsoft JhengHei, sans-serif";
-
-            ctx.fillText(
-                userName,
-                width / 2,
-                75
-            );
-
-            ctx.font =
-                "bold 65px Microsoft JhengHei, sans-serif";
-
-            ctx.fillText(
-                `你是一臺${currentResult.name}`,
-                width / 2,
-                190
-            );
-
-
-            /*
-             * 圖片
-             */
-
-            ctx.drawImage(
-                image,
-                0,
-                titleHeight,
-                width,
-                imageHeight
-            );
-
-
-            /*
-             * 下載
-             */
-
-            canvas.toBlob(
-                function(blob) {
-
-                    const url =
-                        URL.createObjectURL(
-                            blob
-                        );
-
-                    const a =
-                        document.createElement(
-                            "a"
-                        );
-
-                    a.href =
-                        url;
-
-                    a.download =
-                        `你是一臺${currentResult.name}.jpg`;
-
-                    document.body
-                        .appendChild(a);
-
-                    a.click();
-
-                    a.remove();
-
-                    URL.revokeObjectURL(
-                        url
-                    );
-
-                },
-                "image/jpeg",
-                0.95
-            );
-
-        };
-
-
-    image.onerror =
-        function() {
-
-            alert(
-                "圖片無法讀取，請確認 results 資料夾中的圖片名稱是否正確。"
-            );
-
-        };
-
-
-    image.src =
-        currentResult.image;
-
+    }, "image/jpeg", 0.95);
 }
+
 
 
 /* =========================================================
