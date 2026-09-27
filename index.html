@@ -1408,7 +1408,7 @@ function drawResultCanvas() {
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.font = 'bold 80px FangSong, "仿宋", "Microsoft JhengHei", serif';
+        ctx.font = 'bold 80px "FangSong", "STFangsong", "仿宋", serif';
 
         let displayName = userName || "";
         if (displayName.length > 8) {
@@ -1419,7 +1419,7 @@ function drawResultCanvas() {
         const maxNameWidth = width * 0.42;
         while (ctx.measureText(displayName).width > maxNameWidth && parseInt(ctx.font) > 40) {
             const size = parseInt(ctx.font) - 4;
-            ctx.font = `bold ${size}px FangSong, "仿宋", "Microsoft JhengHei", serif`;
+            ctx.font = `bold ${size}px "FangSong", "STFangsong", "仿宋", serif`;
         }
 
         ctx.fillText(displayName, 70, 125);
