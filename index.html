@@ -503,6 +503,40 @@ body {
     font-weight: bold;
 }
 
+.share-box {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+
+.share-title {
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.copy-link-button {
+    padding: 10px 20px;
+    border: 2px solid #111;
+    border-radius: 6px;
+    background: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.copy-link-button:active {
+    transform: translateY(1px);
+}
+
+.copy-link-status {
+    min-height: 20px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
 /* =========================
    手機
 ========================= */
@@ -781,6 +815,17 @@ body {
                     載入中……
                 </div>
 
+                <div class="share-box">
+                    <div class="share-title">分享給你的朋友</div>
+                    <button
+                        type="button"
+                        class="copy-link-button"
+                        onclick="copyWebsiteLink()"
+                    >
+                        複製網站連結
+                    </button>
+                    <div id="copyLinkStatus" class="copy-link-status"></div>
+                </div>
 
             </div>
 
@@ -905,10 +950,36 @@ function renderStats(total, rows) {
         statsList.appendChild(row);
     });
 
-    const totalRow = document.createElement("div");
-    totalRow.className = "stats-total";
-    totalRow.textContent = `總完成次數：${Number(total || 0).toLocaleString("zh-TW")}`;
-    statsList.appendChild(totalRow);
+}
+
+async function copyWebsiteLink() {
+    const status = document.getElementById("copyLinkStatus");
+    const url = window.location.href;
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(url);
+        } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand("copy");
+            textArea.remove();
+        }
+
+        if (status) {
+            status.textContent = "已複製網站連結！";
+        }
+    } catch (error) {
+        console.error("複製連結失敗：", error);
+        if (status) {
+            status.textContent = "複製失敗，請手動複製網址。";
+        }
+    }
 }
 
 async function loadStats() {
